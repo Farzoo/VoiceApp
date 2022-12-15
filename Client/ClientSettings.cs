@@ -2,8 +2,6 @@
 using System.Net;
 using Microsoft.Extensions.Configuration;
 
-namespace ClientChatApp;
-
 public class ClientSettings
 {
     private IPEndPoint _serverIp;
