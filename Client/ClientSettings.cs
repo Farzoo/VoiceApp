@@ -2,6 +2,8 @@
 using System.Net;
 using Microsoft.Extensions.Configuration;
 
+namespace Client;
+
 public class ClientSettings
 {
     private IPEndPoint _serverIp;

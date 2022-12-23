@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading;
-using NAudio.Wave;
+using NetLib;
 using NetLib.Handlers;
 using NetLib.Packets;
 using NetLib.Packets.Client;
@@ -25,9 +25,20 @@ namespace Client
             return client;
         }
         
+        public static PacketHandlerManager CreatePacketHandlerManager(IClientEvent clientEvent, PacketSerializer serializer)
+        {
+            PacketHandlerManager packetHandlerManager = new PacketHandlerManager(clientEvent, serializer);
+            packetHandlerManager.RegisterPacketReceivedHandler(new VoiceDataHandler());
+            packetHandlerManager.RegisterPacketReceivedHandler(new TimeoutHandler());
+            
+            return packetHandlerManager;
+        }
+        
         public static void Main(string[] args)
         {
             ClientSettings settings = ClientSettings.GetSettings();
+            
+            Console.WriteLine($"{settings.ServerIp.Address}:{settings.ServerIp.Port}");
         
             PacketMapper mapper = new PacketMapper();
             mapper.Register<LoginPacket>();
@@ -35,44 +46,19 @@ namespace Client
             mapper.Register<VoiceDataPacket>();
 
             ClientsHandler clientsHandler = new ClientsHandler();
-            PacketHandlerManager handlerManager = new PacketHandlerManager(clientsHandler, new PacketSerializer(mapper));
-            handlerManager.RegisterPacketReceivedHandler(new TimeoutHandler());
+            PacketHandlerManager handlerManager = CreatePacketHandlerManager(clientsHandler, new PacketSerializer(mapper));
+            
             BaseClient client = CreateTcpClient(settings, new PacketSerializer(mapper));
             clientsHandler.ConnectClient(client);
-            //BaseClient client = CreateTcpClient(settings, mapper);
+            
+            VoiceDataEventHandler voiceDataEventHandler = new VoiceDataEventHandler(client);
+            
             client.SendPacket(new LoginPacket("test", "test"));
-            _client = client;
-            Thread.Sleep(1000);
-            
-            //WaveInCapabilities deviceInfo = WaveIn.GetCapabilities(0);
-            Console.WriteLine("Now recording...");
-            WaveInEvent waveSource = new WaveInEvent();
-            //waveSource.DeviceNumber = 0;
-            waveSource.WaveFormat = new WaveFormat(44100, 1);
 
-            waveSource.DataAvailable += new EventHandler<WaveInEventArgs>(waveSource_DataAvailable);
-            
-            waveSource.StartRecording();
-
-            while (true)
+            while (client.IsConnected)
             {
-                // Send microphone audio 
-                
+                Thread.Sleep(10000);
             }
         }
-
-        private static BaseClient _client;
-        
-        static void waveSource_DataAvailable(object sender, WaveInEventArgs e)
-        {
-            // Send microphone audio and play it
-            Console.WriteLine($"Sending audio {e.BytesRecorded}");
-            _client.SendPacket(new VoiceDataPacket(e.Buffer));
-            // Play audio
-            /*WaveOut waveOut = new WaveOut();
-            waveOut.Init(new RawSourceWaveStream(e.Buffer, 0, e.BytesRecorded, new WaveFormat(44100, 1)));
-            waveOut.Play();*/
-        }
-
     }
 }

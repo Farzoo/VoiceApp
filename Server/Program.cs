@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using System.Net.Sockets;
 using NetLib.Packets;
 using NetLib.Packets.Client;
 using NetLib.Packets.Shared;
@@ -36,10 +35,11 @@ namespace Server
             mapper.Register<PingPacket>();
             mapper.Register<VoiceDataPacket>();
             
-            IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Any, 7777);
+            IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.IPv6Any, 7777);
             
             //LaunchTcpServer(mapper, ipEndPoint);
             LaunchTcpServer(mapper, ipEndPoint);
+            
         }
     }
 }
