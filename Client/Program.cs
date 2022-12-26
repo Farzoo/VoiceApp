@@ -28,7 +28,7 @@ namespace Client
         public static PacketHandlerManager CreatePacketHandlerManager(IClientEvent clientEvent, PacketSerializer serializer)
         {
             PacketHandlerManager packetHandlerManager = new PacketHandlerManager(clientEvent, serializer);
-            packetHandlerManager.RegisterPacketReceivedHandler(new VoiceDataHandler());
+            packetHandlerManager.RegisterPacketReceivedHandler(new VoiceDataClientHandler());
             packetHandlerManager.RegisterPacketReceivedHandler(new TimeoutHandler());
             
             return packetHandlerManager;
