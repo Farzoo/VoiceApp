@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
-using NetLib;
+using NAudio.Wave;
 using NetLib.Handlers;
+using NetLib.Handlers.Client;
 using NetLib.Packets;
 using NetLib.Packets.Client;
 using NetLib.Packets.Shared;
@@ -11,54 +13,41 @@ namespace Client
 {
     internal class Program
     {
-        public static BaseClient CreateUdpClient(ClientSettings settings, IPacketSerializer serializer)
+        public static IPacketHandlerManager CreatePacketHandlerManager(BaseClient client, IPacketSerializer serializer)
         {
-            BaseClient client = new UdpClient(listenIpEndPoint: settings.ServerIp, sendIpEndPoint: settings.ServerIp, serializer);
-            client.StartListening();
-            return client;
-        }
-        
-        public static BaseClient CreateTcpClient(ClientSettings settings, IPacketSerializer serializer)
-        {
-            BaseClient client = new TcpClient(settings.ServerIp, serializer);
-            client.StartListening();
-            return client;
-        }
-        
-        public static PacketHandlerManager CreatePacketHandlerManager(IClientEvent clientEvent, PacketSerializer serializer)
-        {
-            PacketHandlerManager packetHandlerManager = new PacketHandlerManager(clientEvent, serializer);
-            packetHandlerManager.RegisterPacketReceivedHandler(new VoiceDataClientHandler());
-            packetHandlerManager.RegisterPacketReceivedHandler(new TimeoutHandler());
-            
-            return packetHandlerManager;
+            IPacketHandlerManager packetHandlerServerManager = new PacketHandlerClientManager(client, serializer);
+            packetHandlerServerManager.RegisterPacketReceivedHandler(new ClientsVoiceHandler(new WaveFormat(48000, 16, 1), 20, 5));
+            packetHandlerServerManager.RegisterPacketReceivedHandler(new TimeoutHandler());
+            return packetHandlerServerManager;
         }
         
         public static void Main(string[] args)
         {
+            using (Process p = Process.GetCurrentProcess())
+            {
+                p.PriorityClass = ProcessPriorityClass.RealTime;
+            }
+            
             ClientSettings settings = ClientSettings.GetSettings();
             
             Console.WriteLine($"{settings.ServerIp.Address}:{settings.ServerIp.Port}");
         
-            PacketMapper mapper = new PacketMapper();
-            mapper.Register<LoginPacket>();
-            mapper.Register<PingPacket>();
-            mapper.Register<VoiceDataPacket>();
+            IPacketMapper mapper = new PacketMapper()
+                .Register<LoginPacket>()
+                .Register<PingPacket>()
+                .Register<VoiceDataPacket>();
 
-            ClientsHandler clientsHandler = new ClientsHandler();
-            PacketHandlerManager handlerManager = CreatePacketHandlerManager(clientsHandler, new PacketSerializer(mapper));
+            BaseClient client = new TcpClient(settings.ServerIp, new PacketSerializer(mapper));
             
-            BaseClient client = CreateTcpClient(settings, new PacketSerializer(mapper));
-            clientsHandler.ConnectClient(client);
-            
-            VoiceDataEventHandler voiceDataEventHandler = new VoiceDataEventHandler(client);
+            IPacketHandlerManager handlerServerManager = CreatePacketHandlerManager(client, new PacketSerializer(mapper));
+
+            VoiceRecorder voiceRecorder = new VoiceRecorder(client);
+
+            client.StartListening();
             
             client.SendPacket(new LoginPacket("test", "test"));
 
-            while (client.IsConnected)
-            {
-                Thread.Sleep(10000);
-            }
+            var waitDisconnect = new WaitDisconnect(client);
         }
     }
 }
