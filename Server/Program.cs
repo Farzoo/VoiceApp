@@ -1,10 +1,12 @@
 ﻿using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using NetLib.Packets;
 using NetLib.Packets.Client;
 using NetLib.Packets.Shared;
 using NetLib.Server;
+using TcpClient = System.Net.Sockets.TcpClient;
 
 namespace Server
 {
@@ -16,7 +18,7 @@ namespace Server
                 mapper,
                 ipEndPoint
             );
-            Task.Factory.StartNew(chatTcpServer.Start);
+            chatTcpServer.Start();
         }
 
         public static void LaunchUdpServer(IPacketMapper mapper, IPEndPoint ipEndPoint)
