@@ -6,12 +6,7 @@ namespace Client;
 
 public class ClientSettings
 {
-    private IPEndPoint _serverIp;
-    public IPEndPoint ServerIp
-    {
-        get => this._serverIp;
-        set => this._serverIp = value;
-    }
+    public IPEndPoint ServerIp { get; set; }
 
     private String _ip;
 

@@ -11,7 +11,7 @@ using NetLib.Server;
 
 namespace Client
 {
-    internal class Program
+    internal static class Program
     {
         public static IPacketHandlerManager CreatePacketHandlerManager(BaseClient client, IPacketSerializer serializer)
         {
