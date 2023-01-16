@@ -31,7 +31,7 @@ public class ClientSettings
         get => this._port;
         set
         {
-            if (value >= IPEndPoint.MinPort && value <= IPEndPoint.MaxPort)
+            if (value is >= IPEndPoint.MinPort and <= IPEndPoint.MaxPort)
             {
                 this._port = value;
                 this.ServerIp.Port = value;
@@ -44,14 +44,14 @@ public class ClientSettings
         this.ServerIp = new IPEndPoint(IPAddress.Any, 0);
     }
     
-    public static ClientSettings GetSettings()
+    public static ClientSettings? GetSettings()
     {
         return ClientSettings.GetSettings("appsettings.json");
     }
 
-    public static ClientSettings GetSettings(String settingsPath)
+    public static ClientSettings? GetSettings(String settingsPath)
     {
-        ClientSettings settings = new ConfigurationBuilder()
+        ClientSettings? settings = new ConfigurationBuilder()
             .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
             .AddJsonFile(settingsPath)
             .Build()

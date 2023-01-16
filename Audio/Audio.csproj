@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AssemblyName>Core</AssemblyName>
+        <RootNamespace>Core</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Concentus" Version="1.1.7" />
+      <PackageReference Include="NAudio.Core" Version="2.1.0" />
+      <PackageReference Include="protobuf-net" Version="3.1.26" />
+      <PackageReference Include="protobuf-net.Core" Version="3.1.26" />
+    </ItemGroup>
+
+</Project>

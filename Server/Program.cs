@@ -1,29 +1,29 @@
 ﻿using System.Net;
 using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
+using Core.Packets;
+using Core.Packets.Serializer;
+using Core.Packets.Types;
 using NetLib.Packets;
-using NetLib.Packets.Client;
-using NetLib.Packets.Shared;
 using NetLib.Server;
-using TcpClient = System.Net.Sockets.TcpClient;
 
 namespace Server
 {
     internal class Program
     {
-        public static void LaunchTcpServer(IPacketMapper mapper, IPEndPoint ipEndPoint)
+        public static void LaunchTcpServer(IPacketSerializer serializer, IPacketMapper<ushort> mapper, IPEndPoint ipEndPoint)
         {
             MyTcpServer chatTcpServer = new MyTcpServer(
+                serializer,
                 mapper,
                 ipEndPoint
             );
             chatTcpServer.Start();
         }
 
-        public static void LaunchUdpServer(IPacketMapper mapper, IPEndPoint ipEndPoint)
+        public static void LaunchUdpServer(IPacketSerializer serializer, IPacketMapper<ushort> mapper, IPEndPoint ipEndPoint)
         {
             UdpServer chatUdpServer = new MyUdpServer(
+                serializer,
                 mapper,
                 ipEndPoint
             );
@@ -33,16 +33,17 @@ namespace Server
 
         public static void Main(string[] args)
         {
-            
-            IPacketMapper mapper = new PacketMapper();
-            mapper.Register<LoginPacket>();
-            mapper.Register<PingPacket>();
-            mapper.Register<VoiceDataPacket>();
-            
+
+            IPacketMapper<ushort> mapper = new PacketMapper()
+                .Register<PingPacket>()
+                .Register<VoiceDataPacket>();
+
+            IPacketSerializer serializer = new PacketSerializer(mapper);
+
             IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.IPv6Any, 7777);
-            
-            //LaunchTcpServer(mapper, ipEndPoint);
-            LaunchTcpServer(mapper, ipEndPoint);
+
+            //LaunchTcpServer(serializer, ipEndPoint);
+            LaunchTcpServer(serializer, mapper, ipEndPoint);
         }
     }
 }

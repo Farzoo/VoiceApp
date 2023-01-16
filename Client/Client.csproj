@@ -17,6 +17,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\NetLib\NetLib.csproj" />
+      <ProjectReference Include="..\Core\Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>
