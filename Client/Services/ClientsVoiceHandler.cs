@@ -30,7 +30,7 @@ public class ClientsVoiceHandler
     }
     
     [PacketReceiver(typeof(VoiceDataPacket))]
-    public void OnVoiceReceived(BaseClient baseClient, BasePacket basePacket)
+    public void OnVoiceReceived(IClient<BaseClient> client, BasePacket basePacket)
     {
         if(basePacket is not VoiceDataPacket voicePacket) return;
         
@@ -41,6 +41,8 @@ public class ClientsVoiceHandler
                 this.ConnectClient(voicePacket.EntityId);
             }
         }
+        
+        Console.WriteLine($"Received voice packet from {voicePacket.EntityId}");
 
         this.Clients[voicePacket.EntityId].PlayReceivedVoice(voicePacket);
         this.Output.Play();
@@ -57,8 +59,8 @@ public class ClientsVoiceHandler
             }
         }
     }
-    
-    public void ConnectClient(Guid clientId)
+
+    private void ConnectClient(Guid clientId)
     {
         lock(this.Clients)
         {

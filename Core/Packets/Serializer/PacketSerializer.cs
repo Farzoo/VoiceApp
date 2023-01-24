@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using Core.Packets.Types;
 using NetLib.Packets;
 using ProtoBuf.Meta;
 
@@ -28,7 +27,6 @@ public class PacketSerializer : IPacketSerializer
 
     private void RegisterTypeForBaseType(Type type)
     {
-        //if(type.FindInterfaces((t, o) => t == typeof(TBase), null).Length == 0)
         if(type.BaseType != typeof(BasePacket))
             throw new ArgumentException($"Cannot register {type.Name} : {type.BaseType} for serializer. It must inherit from {nameof(BasePacket)}");
         PacketInfo? packetInfo = type.GetCustomAttribute<PacketInfo>(false);
@@ -68,11 +66,6 @@ public class PacketSerializer : IPacketSerializer
         reader.BaseStream.SetLength(length);
         reader.BaseStream.Seek(sizeof(ushort)*2, SeekOrigin.Begin);
         return ProtoBuf.Serializer.NonGeneric.Deserialize(type, stream) as BasePacket ?? throw new PacketDeserializationException($"Failed to deserialize packet {id}");
-    }
-
-    public ushort GetPacketId(byte[] data)
-    {
-        throw new NotImplementedException();
     }
 
     public byte[] Serialize(BasePacket basePacket)

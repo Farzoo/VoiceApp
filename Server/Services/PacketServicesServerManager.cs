@@ -1,4 +1,5 @@
-﻿using NetLib.Handlers;
+﻿using Core;
+using NetLib.Handlers;
 using NetLib.Packets;
 using NetLib.Server;
 using NetLib.Services;
@@ -6,37 +7,41 @@ using NetLib.Services;
 namespace Server.Services;
 
 
-public class PacketServicesServerManager : PacketServicesManager<ushort, PacketServicesServerManager.ReceivedHandler, PacketServicesServerManager.SentHandler>
+public class PacketServicesServerManager
+    : PacketServicesManager<ushort, PacketServicesServerManager.ReceivedHandler, PacketServicesServerManager.SentHandler>
 {
-    public delegate void ReceivedHandler(BaseClient client, BasePacket basePacket);
-
-    public delegate void SentHandler(BaseClient client, BasePacket basePacket);
+    public delegate void ReceivedHandler(ClientWrapper client, BasePacket basePacket);
+    public delegate void SentHandler(ClientWrapper client, BasePacket basePacket);
     private IClientEvent ClientEventManager { get; }
     private IPacketSerializer Serializer { get; }
+    
+    private ISet<ClientWrapper> Clients { get; } = new HashSet<ClientWrapper>();
     
     public PacketServicesServerManager(IClientEvent clientEventManager, IPacketSerializer serializer, IPacketMapper<ushort> mapper) : base(mapper)
     {
         this.ClientEventManager = clientEventManager;
         this.ClientEventManager.OnClientConnected(this.OnConnected);
-        this.ClientEventManager.OnClientDisconnected(this.OnDisconnected);
+        
         this.Serializer = serializer;
     }
     
-    private void OnConnected(BaseClient baseClient)
+    private void OnConnected(IClient<BaseClient> client)
     {
-        Console.WriteLine($"Client {baseClient.Id} connected");
-        baseClient.RegisterOnReceive(this.OnReceive);
-        baseClient.RegisterOnSend(this.OnSend);
+        ClientWrapper clientWrapper = new ClientWrapper(client);
+        clientWrapper.RegisterOnReceive(this.OnReceive);
+        clientWrapper.RegisterOnSend(this.OnSend);
+
+        clientWrapper.RegisterOnDisconnect(this.OnDisconnected);
+        this.Clients.Add(clientWrapper);
     }
 
-    private void OnDisconnected(BaseClient baseClient)
+    private void OnDisconnected(IClient<ClientWrapper> client)
     {
-        Console.WriteLine($"Client {baseClient.Id} disconnected");
-        baseClient.UnregisterOnReceive(this.OnReceive);
-        baseClient.UnregisterOnSend(this.OnSend);
+        client.UnregisterOnReceive(this.OnReceive);
+        client.UnregisterOnSend(this.OnSend);
     }
 
-    private void OnReceive(BaseClient client, byte[] data)
+    private void OnReceive(ClientWrapper client, byte[] data)
     {
         BasePacket basePacket = this.Serializer.Deserialize(data);
         
@@ -51,7 +56,7 @@ public class PacketServicesServerManager : PacketServicesManager<ushort, PacketS
         }
     }
 
-    private void OnSend(BaseClient client, BasePacket basePacket)
+    private void OnSend(ClientWrapper client, BasePacket basePacket)
     {
         if(!this.Mapper.TryGetId(basePacket.GetType(), out var id)) return;
         
@@ -63,6 +68,4 @@ public class PacketServicesServerManager : PacketServicesManager<ushort, PacketS
             packetSentHandler.Invoke(client, basePacket);    
         }
     }
-    
-    
 }

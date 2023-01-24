@@ -6,7 +6,7 @@ public class WaitDisconnect
 {
     private readonly ManualResetEventSlim _waitHandle = new ManualResetEventSlim(false);
 
-    public WaitDisconnect(BaseClient client)
+    public WaitDisconnect(IClient<BaseClient>  client)
     {
         client.RegisterOnDisconnect(this.OnDisconnect);
     }
@@ -16,7 +16,7 @@ public class WaitDisconnect
         this._waitHandle.Wait();
     }
 
-    private void OnDisconnect(BaseClient client)
+    private void OnDisconnect(IClient<BaseClient>  client)
     {
         this._waitHandle.Set();
     }

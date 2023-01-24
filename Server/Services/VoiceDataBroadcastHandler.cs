@@ -1,4 +1,5 @@
-﻿using Core.Packets;
+﻿using Core;
+using Core.Packets;
 using Core.Packets.Types;
 using NetLib.Handlers.HandlerAttribute;
 using NetLib.Packets;
@@ -15,12 +16,12 @@ public class VoiceDataBroadcastHandler
     }
 
     [PacketReceiver(typeof(VoiceDataPacket))]
-    public void BroadcastVoice(BaseClient baseClient, BasePacket basePacket)
+    public void BroadcastVoice(ClientWrapper client, BasePacket basePacket)
     {
         if (basePacket is not VoiceDataPacket voiceDataPacket) return;
 
-        voiceDataPacket.EntityId = baseClient.Id;
+        voiceDataPacket.EntityId = client.Id;
         
-        this.Server.Broadcast(voiceDataPacket, baseClient);
+        this.Server.Broadcast(voiceDataPacket, client.InnerClient);
     }
 }

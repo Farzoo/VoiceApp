@@ -9,7 +9,6 @@ using Core.Packets.Types;
 using NAudio.Wave;
 using NetLib;
 using NetLib.Handlers;
-using NetLib.Handlers.Client;
 using NetLib.Packets;
 using NetLib.Server;
 
@@ -35,13 +34,14 @@ namespace Client
                 .Register<PingPacket>()
                 .Register<VoiceDataPacket>();
             
-            BaseClient client = new TcpClient(settings.ServerIp, new PacketSerializer(mapper));
+            IClient<BaseClient> client = new TcpClient(settings.ServerIp, new PacketSerializer(mapper));
+
 
             var handlerManager = new PacketServicesClientManager(client, new PacketSerializer(mapper), mapper)
-                //.RegisterPacketHandler(new ClientsVoiceHandler(new WaveFormat(48000, 16, 1), 20, 5))
-            ;
+                .RegisterPacketHandler(new ClientsVoiceHandler(new WaveFormat(48000, 16, 1), 20, 5));
 
-                VoiceRecorder voiceRecorder = new VoiceRecorder(client);
+            ClientWrapper clientWrapper = new ClientWrapper(client);
+            VoiceRecorder voiceRecorder = new VoiceRecorder(clientWrapper);
             
             client.StartListening();
 

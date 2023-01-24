@@ -2,18 +2,18 @@
 using System.Runtime.InteropServices;
 using Concentus.Enums;
 using Concentus.Structs;
-using Core.Packets;
+using Core;
 using Core.Packets.Types;
 using CSCore;
 using CSCore.SoundIn;
 using NetLib.Server;
 
-namespace NetLib.Handlers.Client;
+namespace Client;
 
 public class VoiceRecorder
 {
     private WaveFormat WaveFormat { get; } = new WaveFormat(48000, 16, 1);
-    private BaseClient Client { get; }
+    private ClientWrapper Client { get; }
     private int BufferSize { get; }
     private OpusEncoder Encoder { get; }
     private byte[] Buffer { get; }
@@ -28,7 +28,7 @@ public class VoiceRecorder
 
     private uint Sequence { get; set; } = 0;
     
-    public VoiceRecorder(BaseClient client)
+    public VoiceRecorder(ClientWrapper client)
     {
         this.Client = client;
         this.Client.RegisterOnDisconnect(this.OnClientDisconnect);
@@ -86,7 +86,7 @@ public class VoiceRecorder
         }
     }
     
-    private void OnClientDisconnect(BaseClient client)
+    private void OnClientDisconnect(ClientWrapper clientWrapper)
     {
         this.WaveIn.Stop();
         this.WaveIn.Dispose();

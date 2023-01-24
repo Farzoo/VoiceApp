@@ -1,6 +1,4 @@
-﻿using NetLib;
-using NetLib.Handlers;
-using NetLib.Packets;
+﻿using NetLib.Packets;
 using NetLib.Server;
 using NetLib.Services;
 
@@ -8,21 +6,24 @@ namespace Client;
 
 public class PacketServicesClientManager : PacketServicesManager<ushort, PacketServicesClientManager.ReceivedHandler, PacketServicesClientManager.SentHandler>
 {
-    public delegate void ReceivedHandler(BaseClient client, BasePacket basePacket);
+    public delegate void ReceivedHandler(IClient<BaseClient> client, BasePacket basePacket);
 
-    public delegate void SentHandler(BaseClient client, BasePacket basePacket);
-    
+    public delegate void SentHandler(IClient<BaseClient> client, BasePacket basePacket);
     private IPacketSerializer Serializer { get; }
     
-    public PacketServicesClientManager(BaseClient client, IPacketSerializer serializer, IPacketMapper<ushort> mapper) : base(mapper)
+    private IClient<BaseClient> Client { get; }
+    
+    public PacketServicesClientManager(IClient<BaseClient> client, IPacketSerializer serializer, IPacketMapper<ushort> mapper) : base(mapper)
     {
-        client.RegisterOnReceive(this.OnReceive);
-        client.RegisterOnSend(this.OnSend);
+        this.Client = client;
+        
+        this.Client.RegisterOnReceive(this.OnReceive);
+        this.Client.RegisterOnSend(this.OnSend);
         
         this.Serializer = serializer;
     }
     
-    private void OnReceive(BaseClient client, byte[] data)
+    private void OnReceive(IClient<BaseClient> client, byte[] data)
     {
         BasePacket basePacket = this.Serializer.Deserialize(data);
         
@@ -37,7 +38,7 @@ public class PacketServicesClientManager : PacketServicesManager<ushort, PacketS
         }
     }
 
-    private void OnSend(BaseClient client, BasePacket basePacket)
+    private void OnSend(IClient<BaseClient> client, BasePacket basePacket)
     {
         if(!this.Mapper.TryGetId(basePacket.GetType(), out var id)) return;
         
